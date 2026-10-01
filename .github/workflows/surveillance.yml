@@ -1,0 +1,40 @@
+name: Surveillance eCollege31
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  surveillance:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Télécharger le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Installer les dépendances
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Vérifier les actualités
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          python surveillance.py
+
+      - name: Sauvegarder
+        run: |
+          git config user.name "Actualites Jacques Maure"
+          git config user.email "actions@github.com"
+          git add derniere_actualite.json
+          git diff --cached --quiet || git commit -m "Mise a jour actualite"
+          git push
